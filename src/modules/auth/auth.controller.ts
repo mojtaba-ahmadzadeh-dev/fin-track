@@ -1,8 +1,20 @@
-import { Body, Controller, Post, Res } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { SendOtpDto, VerifyOtpDto } from "./dto/auth.dto";
-import { ApiTags } from "@nestjs/swagger";
-import type { Response } from "express";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import type { Request, Response } from "express";
+import { AuthGuard } from "./guards/auth.guard";
+import { AuthDecorator } from "src/common/decorator/auth.decorator";
+import { CanAccess } from "src/common/decorator/role.decorator";
+import { Roles } from "src/common/enum/role.enum";
 
 @Controller("auth")
 @ApiTags("Auth")
@@ -20,5 +32,12 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.checkOtp(verifyOtpDto, res);
+  }
+
+  @Get("check-login")
+  @CanAccess(Roles.Admin, Roles.User, Roles.SuperAdmin)
+  @AuthDecorator()
+  async checkLogin(@Req() req: Request) {
+    return req.user;
   }
 }

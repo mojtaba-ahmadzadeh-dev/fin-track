@@ -11,5 +11,6 @@ export enum AuthMessage {
   OTP_EXPIRED = "کد تأیید منقضی شده است",
   VERIFICATION_ERROR = "خطا در تأیید کد",
   TryAgain = "دوباره تلاش کنید",
-    LoginAgain = "مجددا وارد حساب کاربری خود شوید",
+  LoginAgain = "مجددا وارد حساب کاربری خود شوید",
+  LOGIN_IS_REQUIRED = "وارد حساب کاربری خود شوید"
 }
