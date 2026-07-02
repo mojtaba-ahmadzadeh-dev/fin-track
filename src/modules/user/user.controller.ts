@@ -8,14 +8,16 @@ import {
   Delete,
   Req,
   ParseIntPipe,
+  Put,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { AuthDecorator } from "src/common/decorator/auth.decorator";
 import { CanAccess } from "src/common/decorator/role.decorator";
 import { Roles } from "src/common/enum/role.enum";
 import type { Request } from "express";
-import { UpdateRoleDto } from "./dto/user.dto";
+import { UpdateProfileDto, UpdateRoleDto } from "./dto/user.dto";
+import { SwaggerConsumes } from "src/common/enum/swagger-consumes.enum";
 
 @Controller("user")
 @ApiTags("User")
@@ -42,5 +44,12 @@ export class UserController {
     @Body() updateRoleDto: UpdateRoleDto,
   ) {
     return await this.userService.changeUserRole(id, updateRoleDto.role);
+  }
+
+  @Put("/profile")
+  @ApiConsumes(SwaggerConsumes.MultipartData)
+  @CanAccess(Roles.User, Roles.Admin, Roles.SuperAdmin)
+  async updateProfile(@Body() updateProfileDto: UpdateProfileDto) {
+    return await this.userService.updateProfile(updateProfileDto);
   }
 }
