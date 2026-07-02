@@ -10,10 +10,8 @@ import { AuthModule } from "../auth/auth.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV || "development"}`,
-      ignoreEnvFile: process.env.NODE_ENV === "production",
+      // حذف envFilePath - از .env پیش‌فرض استفاده می‌کند
     }),
-
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>

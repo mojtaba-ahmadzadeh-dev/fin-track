@@ -1,61 +1,144 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "../user/entities/user.entity";
 import { Repository } from "typeorm";
 import { OtpEntity } from "../user/entities/otp.entity";
-import { SendOtpDto } from "./dto/auth.dto";
+import { SendOtpDto, VerifyOtpDto } from "./dto/auth.dto";
 import { Roles } from "src/common/enum/role.enum";
+import { AuthMessage } from "src/common/enum/message.enum";
+import { CookiesOptionsToken } from "src/common/utils/cookie.util";
+import { AuthResponse } from "./types/response";
+import type { Response } from "express";
+import { CookieKeys } from "src/common/enum/cookie.enum";
+import { TokenService } from "./token.service";
+import { randomInt } from "crypto";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-
     @InjectRepository(OtpEntity)
     private otpRepository: Repository<OtpEntity>,
+    private tokenService: TokenService,
   ) {}
 
-  async sendOtp(dto: SendOtpDto) {
-    const { phone } = dto;
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresIn = new Date(Date.now() + 3 * 60 * 1000);
-
-    let user = await this.userRepository.findOne({ where: { phone } });
-
+  async sendOtp(otpDto: SendOtpDto) {
+    const { phone } = otpDto;
+    let user = await this.userRepository.findOneBy({ phone });
     if (!user) {
-      const userCount = await this.userRepository.count();
-
-      const isFirstUser = userCount === 0;
-
       user = this.userRepository.create({
         phone,
-        isActive: true,
-        role: isFirstUser ? Roles.SuperAdmin : Roles.User, 
       });
-
       user = await this.userRepository.save(user);
     }
+    await this.createOtpForUser(user);
+    return {
+      message: "sent code successfully",
+    };
+  }
+  async checkOtp(otpDto: VerifyOtpDto, res: Response) {
+    const { phone, code } = otpDto;
+    const now = new Date();
 
-    await this.otpRepository.delete({ userId: user.id });
-
-    const otp = this.otpRepository.create({
-      code,
-      expiresIn,
-      userId: user.id,
-      method: "sms",
+    const user = await this.userRepository.findOne({
+      where: { phone },
+      relations: {
+        otp: true,
+      },
     });
 
-    await this.otpRepository.save(otp);
+    if (!user || !user?.otp) {
+      throw new UnauthorizedException(AuthMessage.USER_NOT_FOUND);
+    }
 
-    user.otpId = otp.id;
-    await this.userRepository.save(user);
+    const otp = user?.otp;
 
-    console.log(`📨 OTP for ${phone} : ${code}`);
+    if (otp?.code !== code) {
+      throw new UnauthorizedException(AuthMessage.INVALID_OTP);
+    }
+
+    if (otp.expiresIn < now) {
+      throw new UnauthorizedException(AuthMessage.OTP_EXPIRED);
+    }
+
+    if (!user.isPhoneVerified) {
+      await this.userRepository.update(
+        { id: user.id },
+        { isPhoneVerified: true },
+      );
+    }
+
+    await this.otpRepository.update(
+      { userId: user.id },
+      { expiresIn: new Date() },
+    );
+
+    const { accessToken, refreshToken } = this.makeTokensForUser({
+      userId: user.id,
+      phone: user.phone,
+      role: user.role,
+    });
+
+    res.cookie(CookieKeys.ACCESS_TOKEN, accessToken, CookiesOptionsToken());
+    res.cookie(CookieKeys.REFRESH_TOKEN, refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     return {
-      message: "کد تأیید با موفقیت ارسال شد",
+      accessToken,
+      refreshToken,
+      message: AuthMessage.OTP_VERIFIED_SUCCESS,
     };
+  }
+  private makeTokensForUser(payload: {
+    userId: number;
+    phone?: string;
+    role?: string;
+  }) {
+    const accessToken = this.tokenService.createAccessToken(payload);
+    const refreshToken = this.tokenService.createRefreshToken(payload);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+  async sendResponse(res: Response, result: AuthResponse) {
+    const { token, code } = result;
+    res.cookie(CookieKeys.OTP, token, CookiesOptionsToken());
+    return res.json({
+      message: "",
+      code,
+    });
+  }
+  async createOtpForUser(user: UserEntity) {
+    const expiresIn = new Date(new Date().getTime() + 1000 * 60 * 2);
+    const code = randomInt(100000, 999999).toString();
+    let otp = await this.otpRepository.findOneBy({ userId: user.id });
+    if (otp) {
+      if (otp.expiresIn > new Date()) {
+        throw new BadRequestException("otp code not expired");
+      }
+      otp.code = code;
+      otp.expiresIn = expiresIn;
+    } else {
+      otp = this.otpRepository.create({
+        code,
+        expiresIn,
+        userId: user.id,
+      });
+    }
+    otp = await this.otpRepository.save(otp);
+    user.otpId = otp.id;
+    await this.userRepository.save(user);
   }
 }

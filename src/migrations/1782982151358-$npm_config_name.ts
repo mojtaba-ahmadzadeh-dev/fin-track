@@ -12,7 +12,7 @@ export class CreateUserAndOtpTables1732982151358 implements MigrationInterface {
                     { name: "password", type: "varchar", length: "255", isNullable: true },
                     { name: "firstName", type: "varchar", length: "100", isNullable: true },
                     { name: "lastName", type: "varchar", length: "100", isNullable: true },
-                    { name: "phone", type: "varchar", length: "20", isUnique: true, isNullable: true },
+                    { name: "phone", type: "varchar", length: "20", isUnique: true},
                     { name: "isActive", type: "boolean", default: true },
                     { name: "isEmailVerified", type: "boolean", default: false },
                     { name: "isPhoneVerified", type: "boolean", default: false },

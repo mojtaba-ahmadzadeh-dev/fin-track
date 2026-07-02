@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   UpdateDateColumn,
 } from "typeorm";
@@ -41,5 +42,6 @@ export class UserEntity extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
   @OneToOne(() => OtpEntity, (otp) => otp.user)
+  @JoinColumn({ name: "otpId" })
   otp: OtpEntity;
 }
