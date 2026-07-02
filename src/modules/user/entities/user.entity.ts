@@ -12,15 +12,15 @@ import { OtpEntity } from "./otp.entity";
 
 @Entity(EntityName.User)
 export class UserEntity extends BaseEntity {
-  @Column({ type: "varchar", length: 255, unique: true })
+  @Column({ type: "varchar", length: 255, unique: true, nullable: true })
   email: string;
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 255, nullable: true })
   password: string;
   @Column({ type: "varchar", length: 100, nullable: true })
   firstName: string;
   @Column({ type: "varchar", length: 100, nullable: true })
   lastName: string;
-  @Column({ type: "varchar", length: 20, nullable: true, unique: true })
+  @Column({ type: "varchar", length: 20, unique: true })
   phone: string;
   @Column({ default: true })
   isActive: boolean;
