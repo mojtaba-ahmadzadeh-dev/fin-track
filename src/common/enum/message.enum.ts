@@ -28,3 +28,21 @@ export enum UserMessage {
   EMAIL_ALREADY_EXISTS = "این ایمیل قبلاً ثبت شده است",
   USER_NOT_AUTHENTICATED = "کاربر احراز هویت نشده است",
 }
+
+export enum validationMessage {
+  InvalidImageFormat = "فرمت تصویر انتخاب شده باید از نوع jpg و png باشد",
+  InvalidEmailFormat = "ایمیل وارد شده صحیح نمی باشد",
+  InvalidPhoneFormat = "شماره موبایل وارد شده صحیح نمی باشد",
+}
+
+export enum CategoryMessage {
+  // Success
+  CREATED = "تم إنشاء التصنيف بنجاح",
+  DELETED = "دسته‌بندی با شناسه {id} با موفقیت حذف شد",
+
+  // Error
+  PARENT_NOT_FOUND = "الفئة الأب غير موجودة",
+  SLUG_ALREADY_EXISTS = "الـ slug '{slug}' مستخدم بالفعل",
+  NOT_FOUND = "دسته‌بندی یافت نشد",
+  NOT_FOUND_BY_ID = "دسته‌بندی با شناسه {id} یافت نشد",
+}

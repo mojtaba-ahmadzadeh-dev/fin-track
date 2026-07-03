@@ -1,29 +1,29 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Allow } from "class-validator"; // یا Expose
 
 export class CreateCategoryDto {
   @ApiProperty()
+  @Allow()
+  @IsNotEmpty()
   @IsString()
   title: string;
-  @IsString()
-  @ApiProperty()
-  slug: string;
-  @ApiProperty()
-  @IsString()
+  @ApiPropertyOptional({ nullable: true })
+  @Allow()
   @IsOptional()
-  description?: string;
-  @ApiProperty()
-  @Transform(({ value }) => {
-    if (value === "true") return true;
-    if (value === "false") return false;
-    return value;
-  })
+  @IsString()
+  slug?: string;
+  @ApiProperty({ format: "binary" })
+  @Allow()
   @IsOptional()
-  isActive?: boolean;
-  @ApiProperty()
-  @Transform(({ value }) => Number(value))
+  image?: any;
+  @ApiProperty({ type: "boolean" })
+  @Allow()
+  @IsBoolean()
+  show: boolean;
+  @ApiPropertyOptional({ nullable: true })
+  @Allow()
+  @IsOptional()
   @IsNumber()
-  @IsOptional()
   parentId?: number;
 }
