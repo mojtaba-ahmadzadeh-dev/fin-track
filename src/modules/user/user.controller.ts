@@ -1,34 +1,61 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  ParseIntPipe,
+  Put,
+} from "@nestjs/common";
+import { UserService } from "./user.service";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
+import { AuthDecorator } from "src/common/decorator/auth.decorator";
+import { CanAccess } from "src/common/decorator/role.decorator";
+import { Roles } from "src/common/enum/role.enum";
+import type { Request } from "express";
+import { UpdateProfileDto, UpdateRoleDto } from "./dto/user.dto";
+import { SwaggerConsumes } from "src/common/enum/swagger-consumes.enum";
 
-@Controller('user')
+@Controller("user")
+@ApiTags("User")
+@AuthDecorator()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
-  @Get()
-  findAll() {
+  @Get("/all")
+  @CanAccess(Roles.Admin, Roles.SuperAdmin)
+  async findAll() {
     return this.userService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Get("/me")
+  @CanAccess(Roles.User, Roles.Admin, Roles.SuperAdmin)
+  userMe() {
+    return this.userService.userMe();
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @Get(":id")
+  @CanAccess(Roles.Admin, Roles.SuperAdmin)
+  async findOne(@Param("id", ParseIntPipe) id: number) {
+    return await this.userService.findOne(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Patch("/:id/role")
+  @CanAccess(Roles.Admin, Roles.SuperAdmin)
+  async changeRole(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
+    return await this.userService.changeUserRole(id, updateRoleDto.role);
+  }
+
+  @Put("/profile")
+  @ApiConsumes(SwaggerConsumes.MultipartData)
+  @CanAccess(Roles.User, Roles.Admin, Roles.SuperAdmin)
+  async updateProfile(@Body() updateProfileDto: UpdateProfileDto) {
+    return await this.userService.updateProfile(updateProfileDto);
   }
 }
