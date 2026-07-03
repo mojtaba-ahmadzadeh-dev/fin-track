@@ -46,3 +46,29 @@ export enum CategoryMessage {
   NOT_FOUND = "دسته‌بندی یافت نشد",
   NOT_FOUND_BY_ID = "دسته‌بندی با شناسه {id} یافت نشد",
 }
+
+export enum AccountMessage {
+  // ==================== Success Messages ====================
+  CREATED = "حساب مالی با موفقیت ایجاد شد",
+  UPDATED = "حساب با موفقیت ویرایش شد",
+  DELETED = "حساب با موفقیت به طور کامل حذف شد",
+  FOUND_ALL = "حساب‌های کاربر با موفقیت دریافت شد",
+  FOUND_ONE = "جزئیات حساب با موفقیت دریافت شد",
+  BALANCE_FETCHED = "موجودی لحظه‌ای حساب دریافت شد",
+
+  // ==================== Error Messages ====================
+  NOT_FOUND = "حساب مورد نظر یافت نشد یا دسترسی ندارید",
+  NOT_FOUND_BY_ID = "حساب با شناسه {id} یافت نشد یا دسترسی ندارید",
+  USER_NOT_AUTHENTICATED = "کاربر احراز هویت نشده است",
+  INVALID_ACCOUNT_TYPE = "نوع حساب مالی معتبر نیست",
+  CURRENCY_INVALID = "واحد پول وارد شده معتبر نیست",
+  INITIAL_BALANCE_INVALID = "موجودی اولیه نباید منفی باشد",
+  NAME_REQUIRED = "نام حساب مالی الزامی است",
+  NAME_TOO_LONG = "نام حساب مالی نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  ACCOUNT_NOT_ACTIVE = "حساب مورد نظر غیرفعال است",
+  DEFAULT_ACCOUNT_NOT_FOUND = "حساب پیش‌فرض یافت نشد",
+  CANNOT_DELETE_DEFAULT = "نمی‌توان حساب پیش‌فرض را حذف کرد",
+  CANNOT_UPDATE_DEFAULT = "نمی‌توان حساب پیش‌فرض را ویرایش کرد",
+  DUPLICATE_ACCOUNT_NAME = "حسابی با این نام قبلاً برای کاربر ثبت شده است",
+  BALANCE_UPDATE_FAILED = "به‌روزرسانی موجودی با خطا مواجه شد",
+}

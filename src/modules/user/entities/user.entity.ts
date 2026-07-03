@@ -6,10 +6,12 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   UpdateDateColumn,
 } from "typeorm";
 import { OtpEntity } from "./otp.entity";
+import { AccountEntity } from "../../../modules/accounts/entities/account.entity";
 
 @Entity(EntityName.User)
 export class UserEntity extends BaseEntity {
@@ -44,4 +46,8 @@ export class UserEntity extends BaseEntity {
   @OneToOne(() => OtpEntity, (otp) => otp.user)
   @JoinColumn({ name: "otpId" })
   otp: OtpEntity;
+  @OneToMany(() => AccountEntity, (account) => account.user, {
+    cascade: true,
+  })
+  accounts: AccountEntity[];
 }
