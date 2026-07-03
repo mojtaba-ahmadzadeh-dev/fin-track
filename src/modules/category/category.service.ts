@@ -47,4 +47,20 @@ export class CategoryService {
 
     return await this.categoryRepository.save(category);
   }
+
+  async findBySlug(slug: string) {
+    const category = await this.categoryRepository.findOne({
+      where: { slug },
+      relations: {
+        parent: true,
+        children: true,
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException("Category not found");
+    }
+
+    return category;
+  }
 }
