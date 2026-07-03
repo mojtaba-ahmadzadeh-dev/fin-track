@@ -25,7 +25,7 @@ import { SwaggerConsumes } from "src/common/enum/swagger-consumes.enum";
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
+  @Get("/all")
   @CanAccess(Roles.Admin, Roles.SuperAdmin)
   async findAll() {
     return this.userService.findAll();
@@ -35,6 +35,12 @@ export class UserController {
   @CanAccess(Roles.User, Roles.Admin, Roles.SuperAdmin)
   userMe() {
     return this.userService.userMe();
+  }
+
+  @Get(":id")
+  @CanAccess(Roles.Admin, Roles.SuperAdmin)
+  async findOne(@Param("id", ParseIntPipe) id: number) {
+    return await this.userService.findOne(id);
   }
 
   @Patch("/:id/role")

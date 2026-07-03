@@ -63,7 +63,6 @@ export class UserService {
       throw new NotFoundException("User not found");
     }
 
-    // پیدا کردن کاربر با اطلاعات کامل
     const user = await this.userRepository.findOne({
       where: { id: currentUser.id },
     });
@@ -72,10 +71,8 @@ export class UserService {
       throw new NotFoundException("User not found");
     }
 
-    const { firstName, lastName, email, password } =
-      updateProfileDto;
+    const { firstName, lastName, email, password } = updateProfileDto;
 
-    // بررسی یکتایی ایمیل
     if (email) {
       const existingUser = await this.userRepository.findOne({
         where: { email },
@@ -86,10 +83,9 @@ export class UserService {
       }
 
       user.email = email;
-      user.isEmailVerified = false; // ایمیل جدید نیاز به تایید دارد
+      user.isEmailVerified = false;
     }
 
-    // آپدیت نام و نام خانوادگی
     if (firstName) {
       user.firstName = firstName;
     }
@@ -98,16 +94,13 @@ export class UserService {
       user.lastName = lastName;
     }
 
-    // آپدیت رمز عبور (hash کردن)
     if (password) {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
     }
 
-    // ذخیره تغییرات
     await this.userRepository.save(user);
 
-    // حذف اطلاعات حساس از پاسخ
     const { password: _, ...userWithoutPassword } = user;
 
     return {
