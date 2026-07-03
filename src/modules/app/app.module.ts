@@ -6,12 +6,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { TypeOrmConfig } from "src/config/typeorm.config";
 import { AuthModule } from "../auth/auth.module";
 import { UserModule } from "../user/user.module";
+import { CategoryModule } from "../category/category.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      // حذف envFilePath - از .env پیش‌فرض استفاده می‌کند
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -19,7 +19,8 @@ import { UserModule } from "../user/user.module";
         TypeOrmConfig(configService),
     }),
     AuthModule,
-    UserModule
+    UserModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
