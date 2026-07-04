@@ -8,6 +8,11 @@ import { AccountEntity } from "../accounts/entities/account.entity";
 import { REQUEST } from "@nestjs/core";
 import { TransactionType } from "src/common/enum/transaction-type.enum";
 import type { Request } from "express";
+import {
+  paginationGenerator,
+  paginationSolver,
+} from "src/common/utils/pagination.util";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransactionsService {
@@ -48,7 +53,6 @@ export class TransactionsService {
       throw new BadRequestException("حساب مورد نظر یافت نشد یا دسترسی ندارید");
     }
 
-    // ایجاد تراکنش
     const transaction = this.transactionRepository.create({
       amount,
       type,
@@ -63,7 +67,6 @@ export class TransactionsService {
 
     const savedTransaction = await this.transactionRepository.save(transaction);
 
-    // به‌روزرسانی موجودی حساب
     const newBalance =
       type === TransactionType.INCOME
         ? account.balance + amount
@@ -75,6 +78,107 @@ export class TransactionsService {
       success: true,
       message: "تراکنش با موفقیت ثبت شد",
       data: savedTransaction,
+    };
+  }
+
+  async findAll(paginationDto: PaginationDto) {
+    const user = this.request.user;
+
+    if (!user) {
+      throw new BadRequestException("کاربر احراز هویت نشده است");
+    }
+
+    const { page, limit, skip } = paginationSolver(paginationDto);
+
+    const [items, count] = await this.transactionRepository.findAndCount({
+      where: {
+        userId: user.id,
+      },
+      order: {
+        id: "DESC",
+      },
+      skip,
+      take: limit,
+    });
+
+    return {
+      success: true,
+      data: items,
+      meta: paginationGenerator(count, page, limit),
+    };
+  }
+
+  async findOne(id: number) {
+    const user = this.request.user;
+
+    if (!user) {
+      throw new BadRequestException("کاربر احراز هویت نشده است");
+    }
+
+    const transaction = await this.transactionRepository.findOne({
+      where: {
+        id,
+        userId: user.id,
+      },
+      relations: {
+        account: true,
+        category: true,
+      },
+    });
+
+    if (!transaction) {
+      throw new BadRequestException("تراکنش یافت نشد");
+    }
+
+    return {
+      success: true,
+      data: transaction,
+    };
+  }
+
+  async remove(id: number) {
+    const user = this.request.user;
+
+    if (!user) {
+      throw new BadRequestException("کاربر احراز هویت نشده است");
+    }
+
+    const transaction = await this.transactionRepository.findOne({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!transaction) {
+      throw new BadRequestException("تراکنش یافت نشد");
+    }
+
+    const account = await this.accountRepository.findOne({
+      where: {
+        id: transaction.accountId,
+        userId: user.id,
+      },
+    });
+
+    if (!account) {
+      throw new BadRequestException("حساب مرتبط یافت نشد");
+    }
+
+    const newBalance =
+      transaction.type === TransactionType.INCOME
+        ? account.balance - transaction.amount
+        : account.balance + transaction.amount;
+
+    await this.accountRepository.update(account.id, {
+      balance: newBalance,
+    });
+
+    await this.transactionRepository.delete(id);
+
+    return {
+      success: true,
+      message: "تراکنش با موفقیت حذف شد",
     };
   }
 }
