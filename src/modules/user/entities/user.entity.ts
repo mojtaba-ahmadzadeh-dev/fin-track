@@ -12,6 +12,7 @@ import {
 } from "typeorm";
 import { OtpEntity } from "./otp.entity";
 import { AccountEntity } from "../../../modules/accounts/entities/account.entity";
+import { TransactionEntity } from "../../transactions/entities/transaction.entity";
 
 @Entity(EntityName.User)
 export class UserEntity extends BaseEntity {
@@ -50,4 +51,6 @@ export class UserEntity extends BaseEntity {
     cascade: true,
   })
   accounts: AccountEntity[];
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.user)
+  transactions: TransactionEntity[];
 }
