@@ -13,9 +13,11 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsString()
   slug?: string;
-  @ApiProperty({ format: "binary" })
-  @Allow()
-  @IsOptional()
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+  })
+   @IsOptional()
   image?: any;
   @ApiProperty({ type: "boolean" })
   @Allow()

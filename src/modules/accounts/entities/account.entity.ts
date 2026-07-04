@@ -1,8 +1,9 @@
 import { BaseEntity } from "../../../common/abstracts/base.entity";
 import { EntityName } from "../../../common/enum/entity.enum";
-import { Column, Entity, ManyToOne, JoinColumn } from "typeorm";
+import { Column, Entity, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { UserEntity } from "../../user/entities/user.entity";
 import { AccountType } from "../../../common/enum/account-type.enum";
+import { TransactionEntity } from "../../transactions/entities/transaction.entity";
 
 @Entity(EntityName.Accounts)
 export class AccountEntity extends BaseEntity {
@@ -53,4 +54,6 @@ export class AccountEntity extends BaseEntity {
 
   @Column()
   userId: number;
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.account)
+  transactions: TransactionEntity[];
 }

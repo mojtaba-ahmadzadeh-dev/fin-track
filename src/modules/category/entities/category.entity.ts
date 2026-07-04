@@ -7,6 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { TransactionEntity } from "../../transactions/entities/transaction.entity";
 
 @Entity(EntityName.Category)
 export class CategoryEntity extends BaseEntity {
@@ -28,4 +29,6 @@ export class CategoryEntity extends BaseEntity {
   parent: CategoryEntity;
   @OneToMany(() => CategoryEntity, (category) => category.parent)
   children: CategoryEntity;
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.category)
+  transactions: TransactionEntity[];
 }
